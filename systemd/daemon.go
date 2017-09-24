@@ -13,13 +13,13 @@ type Daemon struct {
 }
 
 // Run initializes default property values and delegates to BaseTask RunActions method
-func (d Daemon) Run(runActions ...action.Enum) gopack.ActionRunStatus {
+func (d Daemon) Run(runActions ...action.Name) gopack.ActionRunStatus {
 	d.setDefaults()
 	return d.RunActions(&d, d.registerActions(), runActions)
 }
 
-func (d Daemon) registerActions() action.Methods {
-	return action.Methods{
+func (d Daemon) registerActions() action.Funcs {
+	return action.Funcs{
 		action.Reload: d.reload,
 	}
 }

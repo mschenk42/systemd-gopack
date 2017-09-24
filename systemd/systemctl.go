@@ -17,13 +17,13 @@ type SystemCtl struct {
 }
 
 // Run initializes default property values and delegates to BaseTask RunActions method
-func (s SystemCtl) Run(runActions ...action.Enum) gopack.ActionRunStatus {
+func (s SystemCtl) Run(runActions ...action.Name) gopack.ActionRunStatus {
 	s.setDefaults()
 	return s.RunActions(&s, s.registerActions(), runActions)
 }
 
-func (s SystemCtl) registerActions() action.Methods {
-	return action.Methods{
+func (s SystemCtl) registerActions() action.Funcs {
+	return action.Funcs{
 		action.Start:   s.start,
 		action.Restart: s.restart,
 		action.Stop:    s.stop,
@@ -47,10 +47,17 @@ func (s SystemCtl) start() (bool, error) {
 		Args:   []string{"start", s.Service},
 		Stream: true,
 	}
+
 	t.SetNotIf(func() (bool, error) {
-		_, err := task.ExecCmd(time.Second*10, "systemctl", "is-active", s.Service)
-		return err == nil, nil
+		notif := task.Command{
+			Name:     "systemctl",
+			Args:     []string{"is-active", s.Service},
+			Timeout:  time.Second * 10,
+			BaseTask: gopack.BaseTask{ContOnError: true},
+		}
+		return notif.Run(action.Run)[action.Run], nil
 	})
+
 	return t.Run(action.Run)[action.Run], nil
 }
 
@@ -69,10 +76,17 @@ func (s SystemCtl) stop() (bool, error) {
 		Args:   []string{"stop", s.Service},
 		Stream: true,
 	}
+
 	t.SetOnlyIf(func() (bool, error) {
-		_, err := task.ExecCmd(time.Second*10, "systemctl", "is-active", s.Service)
-		return err == nil, nil
+		onlyif := task.Command{
+			Name:     "systemctl",
+			Args:     []string{"is-active", s.Service},
+			Timeout:  time.Second * 10,
+			BaseTask: gopack.BaseTask{ContOnError: true},
+		}
+		return onlyif.Run(action.Run)[action.Run], nil
 	})
+
 	return t.Run(action.Run)[action.Run], nil
 }
 
@@ -82,10 +96,17 @@ func (s SystemCtl) enable() (bool, error) {
 		Args:   []string{"enable", s.Service},
 		Stream: true,
 	}
+
 	t.SetNotIf(func() (bool, error) {
-		_, err := task.ExecCmd(time.Second*10, "systemctl", "is-enabled", s.Service)
-		return err == nil, nil
+		notif := task.Command{
+			Name:     "systemctl",
+			Args:     []string{"is-enabled", s.Service},
+			Timeout:  time.Second * 10,
+			BaseTask: gopack.BaseTask{ContOnError: true},
+		}
+		return notif.Run(action.Run)[action.Run], nil
 	})
+
 	return t.Run(action.Run)[action.Run], nil
 }
 
@@ -95,10 +116,17 @@ func (s SystemCtl) disable() (bool, error) {
 		Args:   []string{"disable", s.Service},
 		Stream: true,
 	}
+
 	t.SetOnlyIf(func() (bool, error) {
-		_, err := task.ExecCmd(time.Second*10, "systemctl", "is-enabled", s.Service)
-		return err == nil, nil
+		onlyif := task.Command{
+			Name:     "systemctl",
+			Args:     []string{"is-enabled", s.Service},
+			Timeout:  time.Second * 10,
+			BaseTask: gopack.BaseTask{ContOnError: true},
+		}
+		return onlyif.Run(action.Run)[action.Run], nil
 	})
+
 	return t.Run(action.Run)[action.Run], nil
 }
 
