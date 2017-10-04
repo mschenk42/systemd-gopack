@@ -5,6 +5,7 @@ import (
 
 	"github.com/mschenk42/gopack"
 	"github.com/mschenk42/gopack/action"
+	"github.com/mschenk42/gopack/task"
 )
 
 // Daemon reloads/reexecutes systemd manager
@@ -33,5 +34,9 @@ func (s Daemon) String() string {
 }
 
 func (s Daemon) reload() (bool, error) {
-	return true, nil
+	return task.Command{
+		Name:   "systemctl",
+		Args:   []string{"daemon-reload"},
+		Stream: true,
+	}.Run(action.Run)[action.Run], nil
 }
